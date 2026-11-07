@@ -249,6 +249,44 @@ describe("GitHub release check", () => {
     expect(result.canAutoInstall).toBe(false);
   });
 
+  it("matches GitHub asset names that use dots instead of spaces", async () => {
+    const result = await checkForUpdate(
+      runtime({ currentVersion: "0.1.5", packaging: "portable" }),
+      {
+        fetch: async () =>
+          release([
+            latest({
+              tag_name: "v0.1.6",
+              name: "ComicSpace v0.1.6",
+              assets: [
+                {
+                  name: "ComicSpace.Setup.0.1.6.exe",
+                  size: 131487239,
+                  browser_download_url:
+                    "https://github.com/WangJinRrrr/ComicSpace/releases/download/v0.1.6/ComicSpace.Setup.0.1.6.exe",
+                },
+                {
+                  name: "ComicSpace.0.1.6.exe",
+                  size: 118645410,
+                  browser_download_url:
+                    "https://github.com/WangJinRrrr/ComicSpace/releases/download/v0.1.6/ComicSpace.0.1.6.exe",
+                },
+              ],
+            }),
+          ]),
+      },
+    );
+    expect(result.latestVersion).toBe("0.1.6");
+    expect(result.asset).toEqual({
+      name: "ComicSpace.0.1.6.exe",
+      size: 118645410,
+      kind: "portable",
+    });
+    expect(result.canDownload).toBe(true);
+    expect(result.installMode).toBe("manual-portable");
+    expect(result.canAutoInstall).toBe(false);
+  });
+
   it("does not send a token unless one is provided", async () => {
     let authorization: string | null = null;
     await checkForUpdate(runtime(), {
