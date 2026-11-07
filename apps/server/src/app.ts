@@ -13,6 +13,7 @@ import { registerLibraryRoutes } from "./routes/library.js";
 import { registerDownloadRoutes } from "./routes/downloads.js";
 import { registerImageRoutes } from "./routes/images.js";
 import { registerSettingsRoutes } from "./routes/settings.js";
+import { registerUpdateRoutes } from "./routes/updates.js";
 
 export function createApp(context: AppContext): Hono {
   const app = new Hono();
@@ -54,6 +55,7 @@ export function createApp(context: AppContext): Hono {
   registerDownloadRoutes(app, context);
   registerImageRoutes(app, context);
   registerSettingsRoutes(app, context);
+  registerUpdateRoutes(app, context);
 
   app.all("/api/*", (c) =>
     c.json(

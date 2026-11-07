@@ -16,7 +16,9 @@ import {
   removeFromLibrary,
 } from "../src/db/repos/library.js";
 import {
+  clearHistory,
   getLatestProgress,
+  getProgressForChapter,
   listHistory,
   listProgressForManga,
   upsertProgress,
@@ -121,5 +123,159 @@ describe("database repositories", () => {
     expect(getDownloadByChapter(db, "src", "m1", "c1")?.completedPages).toBe(1);
     updateDownloadStatus(db, download.id, "completed");
     expect(getDownloadByChapter(db, "src", "m1", "c1")?.status).toBe("completed");
+  });
+
+  it("keeps one history row per manga for the chapter actually read last", () => {
+    db = createDatabase(":memory:");
+    upsertManga(db, "src", { id: "m1", title: "Manga One" });
+    upsertManga(db, "src", { id: "m2", title: "Manga Two" });
+    upsertManga(db, "other", { id: "m1", title: "Other Source" });
+    upsertChapters(db, "src", "m1", [
+      { id: "c1", title: "Chapter 1", number: 1 },
+      { id: "c2", title: "Chapter 2", number: 2 },
+      { id: "c3", title: "Chapter 3", number: 3 },
+    ]);
+    upsertChapters(db, "src", "m2", [
+      { id: "d1", title: "D1", number: 1 },
+      { id: "d2", title: "D2", number: 2 },
+    ]);
+
+    upsertProgress(
+      db,
+      {
+        sourceId: "src",
+        mangaId: "m1",
+        chapterId: "c1",
+        pageIndex: 1,
+        mode: "single",
+        completed: true,
+      },
+      1_000,
+    );
+    upsertProgress(
+      db,
+      {
+        sourceId: "src",
+        mangaId: "m1",
+        chapterId: "c2",
+        pageIndex: 4,
+        mode: "double",
+        completed: false,
+      },
+      2_000,
+    );
+    upsertProgress(
+      db,
+      {
+        sourceId: "src",
+        mangaId: "m1",
+        chapterId: "c3",
+        pageIndex: 9,
+        mode: "single",
+        completed: false,
+      },
+      3_000,
+    );
+    upsertProgress(
+      db,
+      {
+        sourceId: "src",
+        mangaId: "m2",
+        chapterId: "d1",
+        pageIndex: 0,
+        mode: "single",
+        completed: false,
+      },
+      2_500,
+    );
+    upsertProgress(
+      db,
+      {
+        sourceId: "other",
+        mangaId: "m1",
+        chapterId: "c1",
+        pageIndex: 2,
+        mode: "single",
+        completed: false,
+      },
+      1_500,
+    );
+
+    const history = listHistory(db);
+    expect(history.map((item) => `${item.sourceId}:${item.mangaId}`)).toEqual([
+      "src:m1",
+      "src:m2",
+      "other:m1",
+    ]);
+    expect(history[0]).toMatchObject({
+      chapterId: "c3",
+      pageIndex: 9,
+      chapterTitle: "Chapter 3",
+    });
+    expect(listProgressForManga(db, "src", "m1")).toHaveLength(3);
+
+    upsertProgress(
+      db,
+      {
+        sourceId: "src",
+        mangaId: "m1",
+        chapterId: "c1",
+        pageIndex: 6,
+        mode: "single",
+        completed: false,
+      },
+      4_000,
+    );
+    const reread = listHistory(db);
+    expect(reread[0]).toMatchObject({
+      sourceId: "src",
+      mangaId: "m1",
+      chapterId: "c1",
+      pageIndex: 6,
+      chapterTitle: "Chapter 1",
+    });
+    expect(getProgressForChapter(db, "src", "m1", "c3")).toMatchObject({
+      pageIndex: 9,
+      completed: false,
+    });
+    expect(getLatestProgress(db, "src", "m1")?.chapterId).toBe("c1");
+    expect(listProgressForManga(db, "src", "m1")).toHaveLength(3);
+
+    upsertProgress(
+      db,
+      {
+        sourceId: "src",
+        mangaId: "m2",
+        chapterId: "d1",
+        pageIndex: 1,
+        mode: "single",
+        completed: false,
+      },
+      5_000,
+    );
+    upsertProgress(
+      db,
+      {
+        sourceId: "src",
+        mangaId: "m2",
+        chapterId: "d2",
+        pageIndex: 3,
+        mode: "single",
+        completed: false,
+      },
+      5_000,
+    );
+    const tied = listHistory(db).filter((item) => item.mangaId === "m2");
+    expect(tied).toHaveLength(1);
+    expect(tied[0]?.chapterId).toBe("d2");
+    expect(listHistory(db, 1)).toHaveLength(1);
+    expect(listHistory(db, 1)[0]?.mangaId).toBe("m2");
+
+    clearHistory(db);
+    expect(listHistory(db)).toEqual([]);
+    expect(getLatestProgress(db, "src", "m1")).toMatchObject({
+      chapterId: "c1",
+      pageIndex: 6,
+    });
   });
 });

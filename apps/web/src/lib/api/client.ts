@@ -20,6 +20,10 @@ import {
   type SettingsDto,
   type SourceConfigDto,
   type SourcesDto,
+  type UpdateCheckDto,
+  type UpdateFetchDto,
+  type UpdateOpenDto,
+  type AccountSyncResultDto,
 } from "@comicspace/contracts";
 
 const API_BASE = "/api";
@@ -255,4 +259,19 @@ export const api = {
     cacheLimitMb?: number;
     proxyUrl?: string;
   }) => request<SettingsDto>("/settings", putBody(body)),
+
+  getUpdate: (signal?: AbortSignal) =>
+    request<UpdateCheckDto>("/updates", { signal }),
+
+  fetchUpdate: () =>
+    request<UpdateFetchDto>("/updates/fetch", { method: "POST" }),
+
+  openUpdate: () =>
+    request<UpdateOpenDto>("/updates/open", { method: "POST" }),
+
+  syncAccount: (sourceId: string) =>
+    request<AccountSyncResultDto>(
+      `/sources/${encodeURIComponent(sourceId)}/sync-account`,
+      { method: "POST" },
+    ),
 };

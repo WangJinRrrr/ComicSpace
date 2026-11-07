@@ -20,7 +20,7 @@ async function main(): Promise<void> {
       `✓ ${plugin.id} v${plugin.manifest.version} — ${plugin.manifest.name}`,
     );
     console.log(
-      `  search=${plugin.capabilities.search} browse=${plugin.capabilities.browse} filters=${plugin.capabilities.filters}`,
+      `  search=${plugin.capabilities.search} browse=${plugin.capabilities.browse} filters=${plugin.capabilities.filters} accountSync=${plugin.capabilities.accountSync}`,
     );
   }
 

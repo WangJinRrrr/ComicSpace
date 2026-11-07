@@ -153,6 +153,12 @@ const migrations: Migration[] = [
         ON page_cache (source_id, kind, remote_url);
     `,
   },
+  {
+    version: 4,
+    sql: `
+      ALTER TABLE history ADD COLUMN chapter_title TEXT;
+    `,
+  },
 ];
 
 export function migrate(db: DatabaseSync): void {

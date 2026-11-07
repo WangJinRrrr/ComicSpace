@@ -12,6 +12,7 @@ import {
   resolveConfig,
 } from "../plugins/config.js";
 import { getPluginConfig, savePluginConfig } from "../db/repos/config.js";
+import { syncSourceAccount } from "../services/accountSync.js";
 import { listSources } from "../services/sources.js";
 
 function maskConfig(
@@ -120,5 +121,14 @@ export function registerSourceRoutes(app: Hono, context: AppContext): void {
       c,
       maskConfig(plugin.id, fields, resolved.values, saved.enabled),
     );
+  });
+
+  app.post("/api/sources/:id/sync-account", async (c) => {
+    const sourceId = sourceIdSchema.safeParse(c.req.param("id"));
+    if (!sourceId.success) throw badRequest("Invalid source id");
+    return ok(c, await syncSourceAccount(
+      { db: context.db, registry: context.registry },
+      sourceId.data,
+    ));
   });
 }
