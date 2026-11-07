@@ -1,6 +1,7 @@
 import {
   PluginError,
   isPluginError,
+  type AccountPageSession,
   type ConfigValues,
   type MangaPlugin,
   type PluginContext,
@@ -27,6 +28,7 @@ export interface InvokeOptions {
   timeoutMs?: number;
   limiter?: PluginLimiter;
   config: ConfigValues;
+  openAccountSession?: () => Promise<AccountPageSession>;
 }
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -72,6 +74,9 @@ export async function invokePlugin<T>(
     config: Object.freeze({ ...options.config }),
     signal: controller.signal,
     logger,
+    ...(options.openAccountSession
+      ? { openAccountSession: options.openAccountSession }
+      : {}),
     fetch: (input, init = {}) => {
       const headers = new Headers(init.headers);
       if (!headers.has("user-agent")) {

@@ -11,6 +11,7 @@ import {
   type MenuItemConstructorOptions,
   type UtilityProcess,
 } from "electron";
+import { startAccountBrowser } from "./accountBrowser.js";
 
 // Must run before any app.getPath("userData") call, otherwise the scoped
 // package name (@comicspace/desktop) leaks into %APPDATA%.
@@ -23,6 +24,7 @@ const IS_DEV = process.argv.includes("--dev");
 let serverProcess: UtilityProcess | null = null;
 let mainWindow: BrowserWindow | null = null;
 let appOrigin = "";
+let accountBrowser: { close: () => Promise<void> } | null = null;
 
 function resourcesPath(...parts: string[]): string {
   return path.join(process.resourcesPath, ...parts);
@@ -93,6 +95,10 @@ async function startServer(): Promise<{ origin: string; pluginsDir: string; data
 
   const port = await findFreePort();
   const origin = `http://127.0.0.1:${port}`;
+  const browser = await startAccountBrowser({
+    advertiseFiles: [path.join(dataDir, "account-browser.json")],
+  }).catch(() => null);
+  accountBrowser = browser;
 
   const child = utilityProcess.fork(entry, [], {
     serviceName: "comicspace-server",
@@ -108,6 +114,12 @@ async function startServer(): Promise<{ origin: string; pluginsDir: string; data
       COMICSPACE_RUNTIME: "desktop",
       COMICSPACE_APP_VERSION: app.getVersion(),
       COMICSPACE_PACKAGING: packagingKind(),
+      ...(browser
+        ? {
+            COMICSPACE_ACCOUNT_BROWSER: browser.url,
+            COMICSPACE_ACCOUNT_BROWSER_TOKEN: browser.token,
+          }
+        : {}),
     }),
   });
 
@@ -262,6 +274,8 @@ if (!gotLock) {
       serverProcess.kill();
       serverProcess = null;
     }
+    void accountBrowser?.close();
+    accountBrowser = null;
   });
 
   app
@@ -272,6 +286,9 @@ if (!gotLock) {
       if (IS_DEV) {
         appOrigin = new URL(DEV_SERVER).origin;
         const repoRoot = path.resolve(__dirname, "../../..");
+        accountBrowser = await startAccountBrowser({
+          advertiseFiles: [path.join(repoRoot, "data", "account-browser.json")],
+        }).catch(() => null);
         buildMenu(path.join(repoRoot, "plugins"), path.join(repoRoot, "data"));
         createWindow();
         return;
