@@ -220,14 +220,15 @@ function errorResult(
 function safeExeName(name: string): boolean {
   if (!name || name !== path.basename(name)) return false;
   if (name.includes("..") || /[\\/]/.test(name)) return false;
-  return /^ComicSpace(?: Setup)? .+\.exe$/i.test(name);
+  // GitHub replaces spaces in asset names with dots.
+  return /^ComicSpace(?:[ .]Setup)?[ .].+\.exe$/i.test(name);
 }
 
 function classifyAssetName(name: string): "nsis" | "portable" | null {
   if (!safeExeName(name)) return null;
   if (/arm64|ia32|win32/i.test(name)) return null;
-  if (/^ComicSpace Setup .+\.exe$/i.test(name)) return "nsis";
-  if (/^ComicSpace .+\.exe$/i.test(name)) return "portable";
+  if (/^ComicSpace[ .]Setup[ .].+\.exe$/i.test(name)) return "nsis";
+  if (/^ComicSpace[ .].+\.exe$/i.test(name)) return "portable";
   return null;
 }
 
