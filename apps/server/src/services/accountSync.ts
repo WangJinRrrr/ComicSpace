@@ -13,11 +13,13 @@ import { mergeRemoteRead } from "../db/repos/progress.js";
 import { validateAccountSnapshot, validateManga } from "../plugins/validate.js";
 import { invokePlugin } from "../plugins/invoke.js";
 import type { PluginRegistry } from "../plugins/registry.js";
+import { openDesktopAccountSession } from "./accountBrowser.js";
 import { getCallableSource } from "./sources.js";
 
 export interface AccountSyncDeps {
   db: Db;
   registry: PluginRegistry;
+  dataDir: string;
 }
 
 function rememberManga(db: Db, sourceId: string, manga: Manga): void {
@@ -188,8 +190,9 @@ export async function syncSourceAccount(
     [],
     {
       config: callable.config,
-      timeoutMs: 30_000,
+      timeoutMs: 240_000,
       limiter: deps.registry.limiterFor(callable.plugin),
+      openAccountSession: openDesktopAccountSession(deps.dataDir),
     },
   );
   const snapshot = validateAccountSnapshot(raw);

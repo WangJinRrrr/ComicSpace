@@ -127,7 +127,11 @@ export function registerSourceRoutes(app: Hono, context: AppContext): void {
     const sourceId = sourceIdSchema.safeParse(c.req.param("id"));
     if (!sourceId.success) throw badRequest("Invalid source id");
     return ok(c, await syncSourceAccount(
-      { db: context.db, registry: context.registry },
+      {
+        db: context.db,
+        registry: context.registry,
+        dataDir: context.env.dataDir,
+      },
       sourceId.data,
     ));
   });

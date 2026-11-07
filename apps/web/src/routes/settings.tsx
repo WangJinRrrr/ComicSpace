@@ -594,7 +594,7 @@ function AccountSyncPanel({ sourceId }: { sourceId: string }) {
     <div className="space-y-2 border-t border-line pt-4">
       <h3 className="text-sm font-medium">从网站同步</h3>
       <p className="text-xs leading-5 text-muted">
-        把已登录站点里的收藏和阅读历史导入到本地。只读，不会写回网站。本地已有记录会保留；同一章节以时间较新的进度为准，时间相同则保留读得更远的页。未登录或登录失效时会停下来，不会显示成同步成功。
+        桌面版会打开网站窗口。请在窗口里登录，软件只读取页面上已经显示的收藏和「最後閱讀」章节，不会把密码发到聊天，也不会写回网站。本地已有记录会保留；同一章节以时间较新的进度为准，时间相同则保留读得更远的页。未登录、翻页失败或页面结构变化时会停下来，不会显示成同步成功。
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <Button

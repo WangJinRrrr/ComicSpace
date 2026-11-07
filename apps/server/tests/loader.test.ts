@@ -40,7 +40,7 @@ describe("plugin loader", () => {
     expect(plugin?.manifest.name).toBe("Mock Source");
   });
 
-  it("loads the released mangacopy plugin and does not advertise account sync", async () => {
+  it("loads the released mangacopy plugin with rendered account sync", async () => {
     const root = fixtureRoot();
     const scan = await loaderFor(path.join(root, "plugins")).scan({
       forceReload: true,
@@ -58,9 +58,9 @@ describe("plugin loader", () => {
       search: true,
       browse: true,
       filters: true,
-      accountSync: false,
+      accountSync: true,
     });
-    expect(typeof plugin?.impl.pullAccount).toBe("undefined");
+    expect(typeof plugin?.impl.pullAccount).toBe("function");
   });
 
   it("isolates an invalid plugin without breaking valid ones", async () => {

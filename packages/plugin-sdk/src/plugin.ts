@@ -39,12 +39,35 @@ export interface PluginLogger {
   error(message: string, meta?: unknown): void;
 }
 
+/** One visible page in a normal browser window. The plugin only reads this DOM. */
+export interface AccountPageView {
+  url: string;
+  html: string;
+}
+
+/**
+ * Host-owned browser session. Implementations open the real site and return
+ * the rendered document; they do not call private account APIs themselves.
+ */
+export interface AccountPageSession {
+  goto(url: string): Promise<void>;
+  current(): Promise<AccountPageView>;
+  /** Click the next visible pager control. False when this list has no next page. */
+  clickNext(): Promise<boolean>;
+  close(): Promise<void>;
+}
+
 export interface PluginContext {
   readonly config: Readonly<ConfigValues>;
   /** Aborted on request cancellation or the server timeout. Pass it to fetches. */
   readonly signal: AbortSignal;
   readonly logger: PluginLogger;
   readonly fetch: typeof fetch;
+  /**
+   * Present when the desktop host can show a site window. Account import uses
+   * it to read pages the user can already see after logging in.
+   */
+  openAccountSession?(): Promise<AccountPageSession>;
 }
 
 export interface SearchQuery {

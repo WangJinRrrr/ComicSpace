@@ -1,4 +1,9 @@
 import {
+  AccountFlowError,
+  cardsToSnapshot,
+  readRenderedAccount,
+} from "./account.js";
+import {
   PluginError,
   type BrowseQuery,
   type Chapter,
@@ -1252,6 +1257,39 @@ const plugin: MangaPlugin = {
 
   async getPages(mangaId, chapterId, ctx) {
     return fetchPages(mangaId, chapterId, ctx);
+  },
+
+  async pullAccount(ctx) {
+    if (!ctx.openAccountSession) {
+      throw new PluginError(
+        "unsupported",
+        "当前环境不能打开网站窗口。请用 ComicSpace 桌面版点击同步，在弹出的网页里登录拷贝漫画。软件不会读取密码，也不会写回网站。",
+      );
+    }
+    const session = await ctx.openAccountSession();
+    try {
+      let rendered: Awaited<ReturnType<typeof readRenderedAccount>>;
+      try {
+        rendered = await readRenderedAccount(session);
+      } catch (error) {
+        if (error instanceof AccountFlowError) {
+          throw new PluginError(
+            error.code === "auth_required" ? "auth_required" : "parse_error",
+            error.message,
+          );
+        }
+        throw error;
+      }
+      return cardsToSnapshot(rendered.favorites, rendered.history, async (pathWord) => {
+        const chapters = await this.getChapters(pathWord, ctx);
+        return chapters.map((chapter) => ({
+          id: chapter.id,
+          title: chapter.title,
+        }));
+      });
+    } finally {
+      await session.close();
+    }
   },
 };
 
