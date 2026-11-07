@@ -1,0 +1,28 @@
+appId: app.comicspace.desktop
+productName: ComicSpace
+directories:
+  output: ../../release
+  buildResources: build
+files:
+  - dist/**
+  - package.json
+# Copied as one tree on purpose: electron-builder's matcher drops a source
+# directory's top-level node_modules, but keeps a nested one.
+extraResources:
+  - from: ../../.build/desktop
+    to: .
+asar: true
+npmRebuild: false
+beforeBuild: scripts/electron-before-build.js
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: ComicSpace

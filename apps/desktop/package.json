@@ -1,0 +1,22 @@
+{
+  "name": "@comicspace/desktop",
+  "productName": "ComicSpace",
+  "version": "0.1.5",
+  "private": true,
+  "description": "ComicSpace 桌面版",
+  "author": "ComicSpace",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsup",
+    "dev": "electron . --dev",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "stage-runtime": "node ../../scripts/desktop-stage.mjs",
+    "dist": "pnpm build && pnpm stage-runtime && electron-builder --win --config electron-builder.yml"
+  },
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0",
+    "tsup": "^9.0.0",
+    "typescript": "^7.0.2"
+  }
+}

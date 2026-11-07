@@ -1,0 +1,29 @@
+{
+  "manifestVersion": 1,
+  "apiVersion": 1,
+  "id": "mock-source",
+  "name": "Mock Source",
+  "version": "1.0.0",
+  "entry": "index.ts",
+  "description": "Local fixture source used by tests and manual smoke checks. Not shipped in plugins/.",
+  "author": "ComicSpace tests",
+  "languages": ["zh", "en"],
+  "readingDirection": "ltr",
+  "allowedImageHosts": ["127.0.0.1:8787"],
+  "config": [
+    {
+      "key": "baseUrl",
+      "label": "Fixture server",
+      "type": "url",
+      "required": true,
+      "default": "http://127.0.0.1:8787"
+    },
+    {
+      "key": "apiKey",
+      "label": "Optional API key",
+      "type": "password",
+      "required": false,
+      "description": "Only used to exercise masked config fields."
+    }
+  ]
+}

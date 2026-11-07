@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@comicspace/plugin-sdk": ["../../packages/plugin-sdk/src/index.ts"]
+    }
+  },
+  "include": ["index.ts"]
+}

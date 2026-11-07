@@ -1,0 +1,50 @@
+{
+  "manifestVersion": 1,
+  "apiVersion": 1,
+  "id": "jmcomic",
+  "name": "JMComic",
+  "version": "0.1.0",
+  "entry": "index.ts",
+  "description": "通过 JMComic 移动端 API 浏览、搜索与阅读。章节图片由服务端按条带还原。",
+  "author": "ComicSpace",
+  "languages": ["zh"],
+  "readingDirection": "rtl",
+  "allowedImageHosts": [
+    "*.jmapiproxy1.cc",
+    "*.jmapiproxy2.cc",
+    "*.jmapiproxy3.cc",
+    "*.jmapinodeudzn.net"
+  ],
+  "imageHeaders": {
+    "user-agent": "Mozilla/5.0 (Linux; Android 9; V1938CT Build/PQ3A.190705.11211812; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Safari/537.36"
+  },
+  "rateLimit": {
+    "maxConcurrency": 4,
+    "minIntervalMs": 100
+  },
+  "config": [
+    {
+      "key": "apiDomain",
+      "label": "API 域名",
+      "type": "string",
+      "required": false,
+      "placeholder": "例如 www.cdnaspa.vip",
+      "description": "留空时自动从域名服务器获取。自动获取失败时填写一个可用的 API 域名。只填写你信任的域名，Cookie 会发送到该域名。"
+    },
+    {
+      "key": "imageDomain",
+      "label": "图片 CDN 域名",
+      "type": "string",
+      "required": false,
+      "placeholder": "例如 cdn-msp.jmapiproxy1.cc",
+      "description": "留空时自动选择。填写不在 allowedImageHosts 中的域名需要同时修改 plugin.json。"
+    },
+    {
+      "key": "cookie",
+      "label": "登录 Cookie",
+      "type": "password",
+      "required": false,
+      "description": "仅用于访问你已登录账号可见的内容；留空则以游客身份请求。"
+    }
+  ]
+}

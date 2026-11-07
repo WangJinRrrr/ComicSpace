@@ -1,0 +1,551 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Every colour resolves to a --cs-* variable so the light
+ * (default) and dark palettes swap by flipping html[data-theme].
+ */
+@theme {
+  --color-canvas: var(--cs-canvas);
+  --color-surface: var(--cs-surface);
+  --color-surface-2: var(--cs-surface-2);
+  --color-surface-3: var(--cs-surface-3);
+  --color-surface-4: var(--cs-surface-4);
+  --color-ink: var(--cs-ink);
+  --color-ink-soft: var(--cs-ink-soft);
+  --color-muted: var(--cs-muted);
+  --color-line: var(--cs-line);
+  --color-line-strong: var(--cs-line-strong);
+  --color-accent: var(--cs-accent);
+  --color-accent-soft: var(--cs-accent-soft);
+  --color-accent-ink: var(--cs-accent-ink);
+  --color-signal: var(--cs-signal);
+  --color-signal-ink: var(--cs-signal-ink);
+  --color-danger: var(--cs-danger);
+  --color-success: var(--cs-success);
+
+  --font-sans: "Inter", "MiSans", "HarmonyOS Sans SC", "Noto Sans SC",
+    "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "SF Mono", ui-monospace,
+    Consolas, monospace;
+
+  /* Fluid type: scales between ~360px and ~1440px viewports. */
+  --text-display: clamp(2rem, 1.35rem + 2.9vw, 3.75rem);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.035em;
+  --text-headline: clamp(1.5rem, 1.2rem + 1.4vw, 2.25rem);
+  --text-headline--line-height: 1.1;
+  --text-headline--letter-spacing: -0.03em;
+  --text-title: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  --text-title--line-height: 1.25;
+  --text-title--letter-spacing: -0.015em;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1rem;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+
+  --shadow-hairline: 0 0 0 1px var(--cs-line);
+  --shadow-soft: 0 1px 2px rgb(40 30 10 / 0.04), 0 4px 16px -6px rgb(40 30 10 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(40 30 10 / 0.05), 0 18px 40px -16px rgb(40 30 10 / 0.28);
+  --shadow-float: 0 1px 1px rgb(40 30 10 / 0.04), 0 12px 32px -8px rgb(40 30 10 / 0.18),
+    0 40px 80px -32px rgb(40 30 10 / 0.25);
+
+  --ease-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --spacing-gutter: clamp(1rem, 0.6rem + 1.8vw, 2.5rem);
+  --spacing-section: clamp(2rem, 1.4rem + 2.6vw, 3.5rem);
+
+  --animate-rise: cs-rise 0.6s var(--ease-out-expo) both;
+  --animate-shimmer: cs-shimmer 1.6s linear infinite;
+}
+
+:root {
+  /* Light (default): warm paper with a five-step surface ladder. */
+  --cs-canvas: #f8f6f0;
+  --cs-surface: #ffffff;
+  --cs-surface-2: #f5f2ea;
+  --cs-surface-3: #ede9dd;
+  --cs-surface-4: #e4dfd0;
+  --cs-ink: #191814;
+  --cs-ink-soft: #3a3830;
+  --cs-muted: #6e6a5e;
+  --cs-line: #e2ddcf;
+  --cs-line-strong: #d0c8b4;
+  /* Text-safe accent (4.6:1 on white); --cs-accent-soft is the decorative gold. */
+  --cs-accent: #9c5f1f;
+  --cs-accent-soft: #d4a574;
+  --cs-accent-ink: #fffaf1;
+  --cs-signal: #7fcdcd;
+  --cs-signal-ink: #1f6f6f;
+  --cs-danger: #b3362f;
+  --cs-success: #2f7d55;
+  --cs-grid: rgb(60 50 20 / 0.055);
+  --cs-glass: rgb(255 255 255 / 0.72);
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  --cs-canvas: #0e0f11;
+  --cs-surface: #16181b;
+  --cs-surface-2: #1c1e22;
+  --cs-surface-3: #23262b;
+  --cs-surface-4: #2c2f35;
+  --cs-ink: #f2efe8;
+  --cs-ink-soft: #d6d2c8;
+  --cs-muted: #9b978c;
+  --cs-line: #2a2c31;
+  --cs-line-strong: #3a3d44;
+  --cs-accent: #e2b07a;
+  --cs-accent-soft: #d4a574;
+  --cs-accent-ink: #1a1308;
+  --cs-signal: #7fcdcd;
+  --cs-signal-ink: #8fdada;
+  --cs-danger: #ef7770;
+  --cs-success: #6fcf97;
+  --cs-grid: rgb(255 255 255 / 0.035);
+  --cs-glass: rgb(22 24 27 / 0.72);
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--cs-canvas);
+    color: var(--cs-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--cs-accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--cs-accent-soft) 40%, transparent);
+  }
+}
+
+/* Grid-paper backdrop, fixed behind the app shell (the reader paints over it). */
+@layer base {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--cs-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--cs-grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(ellipse 90% 70% at 60% 0%, #000 30%, transparent 85%);
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(40rem 24rem at 85% -8%, color-mix(in srgb, var(--cs-accent-soft) 22%, transparent), transparent 70%),
+      radial-gradient(32rem 20rem at 20% -10%, color-mix(in srgb, var(--cs-signal) 14%, transparent), transparent 70%);
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--cs-line-strong) transparent;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Small monospace caption used for indices, section codes and meta. */
+  .label-mono {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .glass {
+    background: var(--cs-glass);
+    backdrop-filter: blur(18px) saturate(1.6);
+    -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  }
+
+  .select-chevron {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238a8576' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.25rem;
+  }
+
+  /* Mirror reflection under Cover Flow items (WebKit/Blink only). */
+  .cf-reflect {
+    -webkit-box-reflect: below 6px
+      linear-gradient(to bottom, transparent 62%, rgb(0 0 0 / 0.16));
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Covers start blurred and resolve once the image has decoded. */
+  .cover-img {
+    opacity: 0;
+    filter: blur(14px) saturate(0.6);
+    transform: scale(1.04);
+    transition:
+      opacity 0.5s var(--ease-out-expo),
+      filter 0.7s var(--ease-out-expo),
+      transform 0.7s var(--ease-out-expo);
+  }
+
+  .cover-img[data-loaded="true"] {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  /* Pointer-driven lift + tilt. --rx/--ry/--mx/--my are set from JS. */
+  .tilt {
+    --rx: 0deg;
+    --ry: 0deg;
+    --lift: 0px;
+    transform: perspective(900px) translateY(var(--lift)) rotateX(var(--rx)) rotateY(var(--ry));
+    transform-style: preserve-3d;
+    transition:
+      transform 0.5s var(--ease-out-expo),
+      box-shadow 0.5s var(--ease-out-expo);
+    will-change: transform;
+  }
+
+  .tilt[data-active="true"] {
+    --lift: -6px;
+    transition-duration: 0.12s, 0.5s;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .tilt-glare {
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      circle at var(--mx, 50%) var(--my, 0%),
+      rgb(255 255 255 / 0.45),
+      transparent 55%
+    );
+    mix-blend-mode: soft-light;
+    transition: opacity 0.4s ease;
+  }
+
+  .tilt[data-active="true"] .tilt-glare {
+    opacity: 1;
+  }
+
+  /*
+   * Stacked shelf row: covers lean back and overlap like a fanned pile. The
+   * hovered (or focused) cover straightens, lifts out of the pile, and pushes
+   * the covers after it aside so it shows in full.
+   */
+  .stack-row {
+    --w: 130px;
+    /* Same lean for every cover: each card carries its own perspective, so
+       the angle never drifts further down the row. */
+    --lean: 20deg;
+    /* Share of a cover hidden behind the next one. Higher reads as a tighter
+       pile; keep enough overlap for the fan to hold together. */
+    --overlap: 0.24;
+    display: flex;
+    padding: 24px 32px 46px 12px;
+  }
+
+  @media (min-width: 768px) {
+    .stack-row {
+      --w: 168px;
+    }
+  }
+
+  .stack-card {
+    position: relative;
+    flex: none;
+    width: var(--w);
+    margin-right: calc(var(--w) * -1 * var(--overlap));
+    z-index: var(--z, 0);
+    transform-origin: left center;
+    transform: perspective(1200px) rotateY(var(--lean));
+    translate: 0 0;
+    transition:
+      transform 0.5s var(--ease-out-expo),
+      translate 0.5s var(--ease-out-expo);
+  }
+
+  .stack-card .stack-cover {
+    box-shadow:
+      -10px 0 22px -10px rgb(0 0 0 / 0.45),
+      0 1px 2px rgb(0 0 0 / 0.08);
+    transition: box-shadow 0.5s var(--ease-out-expo);
+  }
+
+  /* `.is-hot` is applied by CoverStack after a short hover-intent delay, so
+     sweeping across the row does not make every cover pop and shove its
+     neighbours. Keyboard focus stays immediate. */
+  .stack-card.is-hot,
+  .stack-card:focus-visible {
+    z-index: 9999;
+    transform: perspective(1200px) translateY(-12px) scale(1.1) rotateY(0deg);
+    outline: none;
+  }
+
+  .stack-card.is-hot .stack-cover,
+  .stack-card:focus-visible .stack-cover {
+    box-shadow: var(--shadow-float);
+  }
+
+  .stack-card:focus-visible .stack-cover {
+    outline: 2px solid var(--cs-accent);
+    outline-offset: 3px;
+  }
+
+  /* Neighbours step aside on both sides: covers after the lifted one slide
+     right, covers before it slide left, leaving the full cover visible. */
+  .stack-card.is-hot ~ .stack-card,
+  .stack-card:focus-visible ~ .stack-card {
+    translate: calc(var(--w) * 0.5) 0;
+  }
+
+  .stack-card:has(~ .stack-card.is-hot),
+  .stack-card:has(~ .stack-card:focus-visible) {
+    translate: calc(var(--w) * -0.34) 0;
+  }
+
+  /* The row scrolls but shows no scrollbar; arrows and drag do the work. */
+  .stack-scroller {
+    scrollbar-width: none;
+  }
+
+  .stack-scroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  .stack-caption {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 10px);
+    width: calc(var(--w) * 1.3);
+    opacity: 0;
+    translate: 0 -4px;
+    transition:
+      opacity 0.3s ease,
+      translate 0.4s var(--ease-out-expo);
+    pointer-events: none;
+  }
+
+  .stack-card.is-hot .stack-caption,
+  .stack-card:focus-visible .stack-caption {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  /* Hide-on-idle tooltip for icon-only navigation. */
+  .rail-tip {
+    pointer-events: none;
+    opacity: 0;
+    translate: -4px 0;
+    transition:
+      opacity 0.15s ease,
+      translate 0.25s var(--ease-out-expo);
+  }
+
+  .group:hover > .rail-tip,
+  .group:focus-visible > .rail-tip {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .shimmer {
+    background: linear-gradient(
+        100deg,
+        transparent 20%,
+        color-mix(in srgb, var(--cs-surface) 70%, transparent) 50%,
+        transparent 80%
+      )
+      var(--cs-surface-3);
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  /* Children rise in sequence; capped so long lists don't wait. */
+  .stagger > * {
+    animation: cs-rise 0.6s var(--ease-out-expo) both;
+    animation-delay: calc(min(var(--i, 0), 12) * 40ms);
+  }
+
+  .caret::after {
+    content: "_";
+    margin-left: 0.15em;
+    color: var(--cs-accent);
+    animation: cs-blink 1.1s steps(1) infinite;
+  }
+
+  .press {
+    transition: transform 0.18s var(--ease-spring);
+  }
+
+  .press:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+}
+
+@keyframes cs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cs-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@keyframes cs-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes cs-fade-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.995);
+  }
+}
+
+@keyframes cs-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/*
+ * Route transitions (View Transitions API, triggered by the router).
+ * The shell chrome gets its own names so it stays put while content changes.
+ */
+::view-transition-old(root) {
+  animation: cs-fade-out 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: cs-fade-in 0.45s var(--ease-out-expo) 0.06s both;
+}
+
+::view-transition-group(cs-sidebar),
+::view-transition-group(cs-tabbar),
+::view-transition-group(cs-topbar) {
+  animation: none;
+}
+
+::view-transition-old(cs-sidebar),
+::view-transition-new(cs-sidebar),
+::view-transition-old(cs-tabbar),
+::view-transition-new(cs-tabbar),
+::view-transition-old(cs-topbar),
+::view-transition-new(cs-topbar) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(cs-nav-pill),
+::view-transition-group(cs-tab-pill) {
+  animation-duration: 0.42s;
+  animation-timing-function: var(--ease-spring);
+}
+
+::view-transition-group(cs-cover) {
+  animation-duration: 0.5s;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(cs-cover),
+::view-transition-new(cs-cover) {
+  height: 100%;
+  object-fit: cover;
+  animation-duration: 0.5s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  .tilt {
+    transform: none !important;
+  }
+}

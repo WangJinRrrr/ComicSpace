@@ -1,0 +1,33 @@
+{
+  "name": "comicspace",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.13.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"pnpm --filter @comicspace/server dev\" \"pnpm --filter @comicspace/web dev\"",
+    "dev:fixture": "node scripts/dev-fixture.mjs",
+    "build": "pnpm --filter @comicspace/web build && pnpm --filter @comicspace/server build",
+    "start": "node apps/server/dist/index.js",
+    "desktop:dev": "pnpm --filter @comicspace/desktop dev",
+    "desktop:icon": "node scripts/build-icon.mjs",
+    "desktop:build": "pnpm build && pnpm --filter @comicspace/desktop dist",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck && tsc -p tsconfig.plugins.json --noEmit",
+    "lint": "eslint .",
+    "plugin:new": "tsx scripts/create-plugin.ts",
+    "plugin:check": "tsx scripts/check-plugins.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.2",
+    "concurrently": "^10.0.6",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0"
+  }
+}
