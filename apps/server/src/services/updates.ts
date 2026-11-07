@@ -140,6 +140,55 @@ export function compareSemver(left: string, right: string): number | null {
   return 0;
 }
 
+const APP_TAG = /^v\d+\.\d+\.\d+(?:[-+].*)?$/;
+
+function selectAppRelease(listed: unknown[]): {
+  tag_name: string;
+  name?: unknown;
+  body?: unknown;
+  html_url?: unknown;
+  published_at?: unknown;
+  draft?: unknown;
+  prerelease?: unknown;
+  assets?: unknown;
+} | null {
+  let best: {
+    tag_name: string;
+    name?: unknown;
+    body?: unknown;
+    html_url?: unknown;
+    published_at?: unknown;
+    draft?: unknown;
+    prerelease?: unknown;
+    assets?: unknown;
+  } | null = null;
+  for (const item of listed) {
+    if (!item || typeof item !== "object") continue;
+    const release = item as {
+      tag_name?: unknown;
+      name?: unknown;
+      body?: unknown;
+      html_url?: unknown;
+      published_at?: unknown;
+      draft?: unknown;
+      prerelease?: unknown;
+      assets?: unknown;
+    };
+    if (release.draft === true || release.prerelease === true) continue;
+    if (typeof release.tag_name !== "string" || !APP_TAG.test(release.tag_name)) {
+      continue;
+    }
+    if (!parseSemver(release.tag_name)) continue;
+    if (
+      !best ||
+      (compareSemver(release.tag_name, best.tag_name) ?? -1) > 0
+    ) {
+      best = { ...release, tag_name: release.tag_name };
+    }
+  }
+  return best;
+}
+
 function errorResult(
   runtime: UpdateRuntime,
   errorCode: NonNullable<UpdateCheckDto["errorCode"]>,
@@ -328,7 +377,7 @@ async function inspectRelease(
   }
 
   const fetchImpl = options.fetch ?? fetch;
-  const endpoint = `https://api.github.com/repos/${runtime.repo}/releases/latest`;
+  const endpoint = `https://api.github.com/repos/${runtime.repo}/releases?per_page=100`;
   const headers = new Headers({
     accept: "application/vnd.github+json",
     "user-agent": `ComicSpace/${runtime.currentVersion}`,
@@ -384,29 +433,18 @@ async function inspectRelease(
       "GitHub 返回的内容无法解析，已停止检查，没有下载任何文件。",
     );
   }
-  if (!payload || typeof payload !== "object") {
+  if (!payload || (typeof payload !== "object" && !Array.isArray(payload))) {
     return fail(
       "bad_response",
       "GitHub 返回的版本信息不完整，已停止检查，没有下载任何文件。",
     );
   }
-  const release = payload as {
-    tag_name?: unknown;
-    name?: unknown;
-    body?: unknown;
-    html_url?: unknown;
-    published_at?: unknown;
-    draft?: unknown;
-    prerelease?: unknown;
-    assets?: unknown;
-  };
-  if (release.draft === true || release.prerelease === true) {
-    return fail("no_release", "最新结果不是正式版本，已忽略。没有下载任何文件。");
-  }
-  if (typeof release.tag_name !== "string" || !parseSemver(release.tag_name)) {
+  const listed = Array.isArray(payload) ? payload : [payload];
+  const release = selectAppRelease(listed);
+  if (!release) {
     return fail(
-      "unsupported_version",
-      "最新 Release 的版本号无法比较，已停止检查，没有下载任何文件。",
+      "no_release",
+      "GitHub 上没有可用的应用正式版本。插件发布不会当作软件更新。这不代表已经是最新版本。",
     );
   }
 

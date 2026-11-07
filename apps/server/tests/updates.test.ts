@@ -30,7 +30,7 @@ function runtime(overrides: Partial<UpdateRuntime> = {}): UpdateRuntime {
   };
 }
 
-function release(body: Record<string, unknown>, status = 200): Response {
+function release(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "content-type": "application/json" },
@@ -94,7 +94,7 @@ describe("GitHub release check", () => {
     expect(result.canDownload).toBe(false);
     expect(result.message).toContain("最新正式版");
     expect(calls).toEqual([
-      "https://api.github.com/repos/WangJinRrrr/ComicSpace/releases/latest",
+      "https://api.github.com/repos/WangJinRrrr/ComicSpace/releases?per_page=100",
     ]);
   });
 
@@ -218,8 +218,35 @@ describe("GitHub release check", () => {
       fetch: async () => release(latest({ tag_name: "nightly" })),
     });
     expect(result.status).toBe("error");
-    expect(result.errorCode).toBe("unsupported_version");
+    expect(result.errorCode).toBe("no_release");
     expect(result.canDownload).toBe(false);
+    expect(result.message).toContain("插件发布不会当作软件更新");
+  });
+
+  it("ignores plugin releases and selects the newest app tag", async () => {
+    const result = await checkForUpdate(runtime({ currentVersion: "0.1.5" }), {
+      fetch: async () =>
+        release([
+          latest({
+            tag_name: "plugin-mangacopy-v0.1.0",
+            name: "MangaCopy Plugin v0.1.0",
+            assets: [
+              {
+                name: "ComicSpace Setup 9.9.9.exe",
+                size: 4,
+                browser_download_url:
+                  "https://github.com/WangJinRrrr/ComicSpace/releases/download/plugin-mangacopy-v0.1.0/ComicSpace%20Setup%209.9.9.exe",
+              },
+            ],
+          }),
+          latest({ tag_name: "v0.1.0", name: "ComicSpace v0.1.0" }),
+          latest(),
+        ]),
+    });
+    expect(result.status).toBe("update_available");
+    expect(result.latestVersion).toBe("0.2.0");
+    expect(result.asset?.name).toBe("ComicSpace Setup 0.2.0.exe");
+    expect(result.canAutoInstall).toBe(false);
   });
 
   it("does not send a token unless one is provided", async () => {

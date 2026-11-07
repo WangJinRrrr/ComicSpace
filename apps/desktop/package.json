@@ -1,9 +1,9 @@
 {
   "name": "@comicspace/desktop",
   "productName": "ComicSpace",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
-  "description": "ComicSpace 桌面版",
+  "description": "ComicSpace \u684c\u9762\u7248",
   "author": "ComicSpace",
   "main": "dist/main.js",
   "scripts": {
