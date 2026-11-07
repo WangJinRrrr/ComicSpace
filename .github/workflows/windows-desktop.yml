@@ -36,6 +36,7 @@ jobs:
 
       - name: Verify version, plugins, and sharp ABI
         shell: pwsh
+        timeout-minutes: 10
         run: |
           $pkg = Get-Content apps/desktop/package.json | ConvertFrom-Json
           $version = $pkg.version
@@ -47,6 +48,7 @@ jobs:
           if (-not (Test-Path ".build/desktop/default-plugins/mangacopy/plugin.json")) { throw "mangacopy plugin was not bundled" }
           if (-not (Test-Path ".build/desktop/server/node_modules/@img/sharp-win32-x64")) { throw "sharp win32 binary was not staged" }
           $env:NODE_PATH = (Resolve-Path ".build/desktop/server/node_modules").Path
+          $env:ELECTRON_RUN_AS_NODE = "1"
           pnpm --filter @comicspace/desktop exec electron -e "const sharp=require('sharp'); console.log(JSON.stringify({node:process.versions.node, modules:process.versions.modules, sharp:sharp.versions}));"
           Get-ChildItem release -Filter *.exe | Select-Object Name, Length
 
