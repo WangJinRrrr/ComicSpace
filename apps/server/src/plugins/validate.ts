@@ -6,6 +6,7 @@ import {
   type Page,
   type PagedResult,
   type PluginManifest,
+  type RemoteAccountSnapshot,
 } from "@comicspace/plugin-sdk";
 import { z } from "zod";
 
@@ -291,6 +292,40 @@ export function validatePages(raw: unknown): Page[] {
     throw new PluginError(
       "parse_error",
       `Invalid page list: ${issueMessage(parsed.error)}`,
+    );
+  }
+  return parsed.data;
+}
+
+const accountSnapshotSchema = z.object({
+  favorites: z.object({
+    available: z.boolean(),
+    items: z.array(mangaSchema).max(1000),
+    message: z.string().max(2000).optional(),
+  }),
+  history: z.object({
+    available: z.boolean(),
+    items: z
+      .array(
+        z.object({
+          manga: mangaSchema,
+          chapterId: z.string().min(1).max(2048),
+          chapterTitle: z.string().max(1000).optional(),
+          pageIndex: z.number().int().min(0).max(100000).optional(),
+          readAt: z.number().finite().nonnegative().optional(),
+        }),
+      )
+      .max(2000),
+    message: z.string().max(2000).optional(),
+  }),
+});
+
+export function validateAccountSnapshot(raw: unknown): RemoteAccountSnapshot {
+  const parsed = accountSnapshotSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new PluginError(
+      "parse_error",
+      `Invalid account snapshot: ${issueMessage(parsed.error)}`,
     );
   }
   return parsed.data;

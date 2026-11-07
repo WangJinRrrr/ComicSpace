@@ -22,4 +22,5 @@ export const queryKeys = {
   downloads: ["downloads"] as const,
   cache: ["cache"] as const,
   settings: ["settings"] as const,
+  update: ["update"] as const,
 };

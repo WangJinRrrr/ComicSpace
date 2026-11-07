@@ -204,6 +204,15 @@ function SourceRow({
             <SlidersHorizontal className="size-4" aria-hidden="true" />
           </Link>
         </RowNotice>
+      ) : ready && source.capabilities.accountSync && !source.capabilities.browse ? (
+        <RowNotice
+          icon={<BookOpen className="size-5" />}
+          text="到设置页从网站同步收藏和阅读历史"
+        >
+          <Link to="/settings" aria-label="去设置同步" title="去设置同步" className={rowIconClass}>
+            <SlidersHorizontal className="size-4" aria-hidden="true" />
+          </Link>
+        </RowNotice>
       ) : ready && !source.capabilities.browse ? (
         <RowNotice icon={<Search className="size-5" />} text="仅支持搜索">
           <button

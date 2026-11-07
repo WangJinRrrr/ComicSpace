@@ -43,7 +43,7 @@ SQLite（WAL、busy_timeout、foreign_keys）：
 - `manga_cache` / `chapter_cache` / `chapter_pages`：插件结果的快照与降级缓存。
 - `library`：书架成员。
 - `chapter_progress`：断点续读与已读状态。
-- `history`：最近阅读；清空历史不会删进度。
+- `history`：每本漫画在列表里只显示最后一次实际阅读的章节（表里仍按章节保留，回到较早章节会更新这条记录）；清空历史不会删进度。
 - `downloads` / `download_pages`：持久下载任务与本地页。
 - `page_cache`：自动阅读缓存元数据。
 - `plugin_configs`：插件键值配置（明文，见 LEGAL）。

@@ -35,6 +35,7 @@ describe("plugin loader", () => {
       search: true,
       browse: true,
       filters: true,
+      accountSync: false,
     });
     expect(plugin?.manifest.name).toBe("Mock Source");
   });

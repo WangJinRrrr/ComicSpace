@@ -61,7 +61,8 @@ const plugin: MangaPlugin = {
 export default plugin;
 ```
 
-- `search` / `browse` 至少实现一个；`getChapters` / `getPages` 必需。
+- 目录源至少实现 `search` / `browse` 之一，并实现 `getChapters` / `getPages`。
+- 可选 `pullAccount(ctx)`：只读导入登录站点的收藏和阅读历史，不能写回网站。返回 `{ favorites, history }`，某一侧读不到时把 `available` 设为 `false`，不要用空列表假装同步成功。只做账号同步的插件可以不实现搜索。
 - `search`/`browse` 返回 `{ items, page, hasNextPage, total? }`，items 最多 100。
 - `getPages` 返回数组，顺序即页码；最多 5000。
 - 图片 URL 必须是绝对 http(s)。建议提供 `width`/`height`，双页排版会用它判断宽图。

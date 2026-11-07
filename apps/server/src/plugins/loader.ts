@@ -14,6 +14,7 @@ export interface PluginCapabilities {
   search: boolean;
   browse: boolean;
   filters: boolean;
+  accountSync: boolean;
 }
 
 export interface LoadedPlugin {
@@ -225,17 +226,19 @@ export class PluginLoader {
     if (!impl || typeof impl !== "object") {
       throw new Error("plugin entry must default-export an object");
     }
-    if (typeof impl.getChapters !== "function") {
-      throw new Error("plugin must implement getChapters()");
+    const search = typeof impl.search === "function";
+    const browse = typeof impl.browse === "function";
+    const accountSync = typeof impl.pullAccount === "function";
+    if (!search && !browse && !accountSync) {
+      throw new Error("plugin must implement search(), browse(), or pullAccount()");
     }
-    if (typeof impl.getPages !== "function") {
-      throw new Error("plugin must implement getPages()");
-    }
-    if (
-      typeof impl.search !== "function" &&
-      typeof impl.browse !== "function"
-    ) {
-      throw new Error("plugin must implement search() or browse()");
+    if (search || browse) {
+      if (typeof impl.getChapters !== "function") {
+        throw new Error("plugin must implement getChapters()");
+      }
+      if (typeof impl.getPages !== "function") {
+        throw new Error("plugin must implement getPages()");
+      }
     }
 
     return {
@@ -244,9 +247,10 @@ export class PluginLoader {
       manifest,
       impl,
       capabilities: {
-        search: typeof impl.search === "function",
-        browse: typeof impl.browse === "function",
+        search,
+        browse,
         filters: typeof impl.getFilters === "function",
+        accountSync,
       },
       signature: directorySignature(dir),
       loadedAt: Date.now(),

@@ -57,6 +57,14 @@ function seedPlugins(pluginsDir: string): void {
   }
 }
 
+function packagingKind(): "dev" | "nsis" | "portable" {
+  if (IS_DEV || !app.isPackaged) return "dev";
+  if (process.env.PORTABLE_EXECUTABLE_FILE || process.env.PORTABLE_EXECUTABLE_DIR) {
+    return "portable";
+  }
+  return "nsis";
+}
+
 function collectEnv(overrides: Record<string, string>): Record<string, string> {
   const env: Record<string, string> = {};
   for (const [key, value] of Object.entries(process.env)) {
@@ -97,6 +105,9 @@ async function startServer(): Promise<{ origin: string; pluginsDir: string; data
       COMICSPACE_PLUGINS_DIR: pluginsDir,
       COMICSPACE_WEB_DIST: resourcesPath("web"),
       COMICSPACE_SDK_ENTRY: resourcesPath("plugin-sdk", "runtime.mjs"),
+      COMICSPACE_RUNTIME: "desktop",
+      COMICSPACE_APP_VERSION: app.getVersion(),
+      COMICSPACE_PACKAGING: packagingKind(),
     }),
   });
 

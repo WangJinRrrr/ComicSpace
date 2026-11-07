@@ -29,6 +29,7 @@ import {
   Spinner,
 } from "../components/ui";
 import { formatBytes } from "../lib/format";
+import { UpdateSection } from "../components/UpdateSection";
 
 export function SettingsPage() {
   const queryClient = useQueryClient();
@@ -77,6 +78,8 @@ export function SettingsPage() {
           </Button>
         }
       />
+
+      <UpdateSection />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
@@ -236,8 +239,11 @@ function SourceCard({ source }: { source: SourceInfoDto }) {
         </div>
       </div>
       {open ? (
-        <div className="border-t border-line px-4 py-4">
+        <div className="space-y-4 border-t border-line px-4 py-4">
           <SourceConfigForm source={source} />
+          {source.capabilities.accountSync ? (
+            <AccountSyncPanel sourceId={source.id} />
+          ) : null}
         </div>
       ) : null}
     </Card>
@@ -571,6 +577,48 @@ function SettingsForm({
         ) : null}
       </Card>
     </section>
+  );
+}
+
+function AccountSyncPanel({ sourceId }: { sourceId: string }) {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: () => api.syncAccount(sourceId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.library });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.history });
+    },
+  });
+
+  return (
+    <div className="space-y-2 border-t border-line pt-4">
+      <h3 className="text-sm font-medium">从网站同步</h3>
+      <p className="text-xs leading-5 text-muted">
+        把已登录站点里的收藏和阅读历史导入到本地。只读，不会写回网站。本地已有记录会保留；同一章节以时间较新的进度为准，时间相同则保留读得更远的页。未登录或登录失效时会停下来，不会显示成同步成功。
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          onClick={() => mutation.mutate()}
+          disabled={mutation.isPending}
+        >
+          <RefreshCw
+            className={mutation.isPending ? "size-3.5 animate-spin" : "size-3.5"}
+          />
+          {mutation.isPending ? "正在同步…" : "从网站同步收藏和历史"}
+        </Button>
+      </div>
+      {mutation.isError ? (
+        <p className="whitespace-pre-wrap text-xs leading-5 text-danger" role="alert">
+          {mutation.error instanceof Error ? mutation.error.message : "同步失败"}
+        </p>
+      ) : null}
+      {mutation.data ? (
+        <p className="whitespace-pre-wrap text-xs leading-5 text-muted" role="status">
+          {mutation.data.message}
+        </p>
+      ) : null}
+    </div>
   );
 }
 

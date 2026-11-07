@@ -47,7 +47,7 @@ export function HistoryPage() {
       <PageHeader
         eyebrow="03 / History"
         title="历史"
-        description="最近读过的章节。清空历史不会重置阅读进度。"
+        description="每本漫画只显示最后一次实际阅读的章节和页码，按最近阅读排序。清空历史不会重置阅读进度。"
         actions={
           items.length > 0 ? (
             <Button
@@ -66,7 +66,7 @@ export function HistoryPage() {
         <EmptyState
           title="还没有阅读记录"
           icon={<History className="size-10" />}
-          description="打开任意章节阅读后，这里会出现最近记录。"
+          description="打开任意章节后，这里会留下这本书最后阅读的位置。"
         />
       ) : (
         <div className="stagger divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface shadow-soft">

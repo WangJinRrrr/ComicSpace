@@ -96,6 +96,8 @@ export interface SourceCapabilitiesDto {
   search: boolean;
   browse: boolean;
   filters: boolean;
+  /** Plugin can import the signed-in site's favorites and reading history. */
+  accountSync: boolean;
 }
 
 export type SourceStatus = "ready" | "needs_config" | "disabled";
@@ -286,4 +288,70 @@ export interface SettingsDto {
   proxyUrl: string;
   dataDir: string;
   pluginsDir: string;
+}
+
+export type UpdateStatus = "up_to_date" | "update_available" | "error";
+
+export type UpdateInstallMode =
+  | "none"
+  | "manual-nsis"
+  | "manual-portable"
+  | "release-page";
+
+export interface UpdateAssetDto {
+  name: string;
+  size: number;
+  kind: "nsis" | "portable";
+}
+
+export interface UpdateCheckDto {
+  status: UpdateStatus;
+  currentVersion: string;
+  latestVersion: string | null;
+  releaseName: string | null;
+  releaseNotes: string | null;
+  releaseUrl: string | null;
+  publishedAt: string | null;
+  asset: UpdateAssetDto | null;
+  platform: string;
+  arch: string;
+  runtime: "desktop" | "server";
+  packaging: "dev" | "nsis" | "portable" | "unknown";
+  /** This build never installs or restarts by itself. */
+  canAutoInstall: false;
+  /** True only when the user can start a download from inside the app. */
+  canDownload: boolean;
+  installMode: UpdateInstallMode;
+  message: string;
+  errorCode?:
+    | "network"
+    | "rate_limited"
+    | "no_release"
+    | "bad_response"
+    | "unsupported_version"
+    | "forbidden";
+  retryable?: boolean;
+}
+
+export interface UpdateFetchDto {
+  fileName: string;
+  bytes: number;
+  directory: string;
+  message: string;
+  installMode: UpdateInstallMode;
+}
+
+export interface UpdateOpenDto {
+  opened: boolean;
+  message: string;
+}
+
+export interface AccountSyncResultDto {
+  sourceId: string;
+  favoritesAdded: number;
+  favoritesKept: number;
+  historyAdded: number;
+  historyUpdated: number;
+  historyKeptLocal: number;
+  message: string;
 }

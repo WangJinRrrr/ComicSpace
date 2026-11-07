@@ -1,5 +1,6 @@
 import {
   PluginError,
+  isPluginError,
   type ConfigValues,
   type MangaPlugin,
   type PluginContext,
@@ -12,7 +13,13 @@ import type { PluginLimiter } from "./limiter.js";
 
 type PluginMethod = keyof Pick<
   MangaPlugin,
-  "search" | "browse" | "getFilters" | "getManga" | "getChapters" | "getPages"
+  | "search"
+  | "browse"
+  | "getFilters"
+  | "getManga"
+  | "getChapters"
+  | "getPages"
+  | "pullAccount"
 >;
 
 export interface InvokeOptions {
@@ -120,7 +127,8 @@ export async function invokePlugin<T>(
       abortPromise,
     ]);
   } catch (error) {
-    if (error instanceof PluginError) throw error;
+    // Plugins load a separate SDK runtime, so instanceof is not reliable.
+    if (isPluginError(error)) throw error;
     if (controller.signal.aborted) {
       throw new PluginError(
         timedOut ? "timeout" : "cancelled",
