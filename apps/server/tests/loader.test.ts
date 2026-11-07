@@ -40,6 +40,29 @@ describe("plugin loader", () => {
     expect(plugin?.manifest.name).toBe("Mock Source");
   });
 
+  it("loads the released mangacopy plugin and does not advertise account sync", async () => {
+    const root = fixtureRoot();
+    const scan = await loaderFor(path.join(root, "plugins")).scan({
+      forceReload: true,
+    });
+    const failure = scan.failures.find((item) => item.sourceId === "mangacopy");
+    expect(failure).toBeUndefined();
+    const plugin = scan.plugins.find((item) => item.id === "mangacopy");
+    expect(plugin?.manifest).toMatchObject({
+      id: "mangacopy",
+      name: "拷贝漫画",
+      version: "0.1.0",
+      entry: "index.ts",
+    });
+    expect(plugin?.capabilities).toMatchObject({
+      search: true,
+      browse: true,
+      filters: true,
+      accountSync: false,
+    });
+    expect(typeof plugin?.impl.pullAccount).toBe("undefined");
+  });
+
   it("isolates an invalid plugin without breaking valid ones", async () => {
     const root = fixtureRoot();
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "comicspace-plugins-"));
