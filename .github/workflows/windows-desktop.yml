@@ -1,0 +1,57 @@
+name: Windows desktop
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app
+        run: pnpm build
+
+      - name: Package Windows x64
+        run: pnpm --filter @comicspace/desktop dist
+
+      - name: Verify version, plugins, and sharp ABI
+        shell: pwsh
+        run: |
+          $pkg = Get-Content apps/desktop/package.json | ConvertFrom-Json
+          $version = $pkg.version
+          $setup = "release/ComicSpace Setup $version.exe"
+          $portable = "release/ComicSpace $version.exe"
+          if (-not (Test-Path $setup)) { throw "missing $setup" }
+          if (-not (Test-Path $portable)) { throw "missing $portable" }
+          if (-not (Test-Path ".build/desktop/default-plugins/jmcomic/plugin.json")) { throw "jmcomic plugin was not bundled" }
+          if (-not (Test-Path ".build/desktop/default-plugins/mangacopy/plugin.json")) { throw "mangacopy plugin was not bundled" }
+          if (-not (Test-Path ".build/desktop/server/node_modules/@img/sharp-win32-x64")) { throw "sharp win32 binary was not staged" }
+          $env:NODE_PATH = (Resolve-Path ".build/desktop/server/node_modules").Path
+          pnpm --filter @comicspace/desktop exec electron -e "const sharp=require('sharp'); console.log(JSON.stringify({node:process.versions.node, modules:process.versions.modules, sharp:sharp.versions}));"
+          Get-ChildItem release -Filter *.exe | Select-Object Name, Length
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comicspace-windows-x64
+          path: release/*.exe
+          if-no-files-found: error
